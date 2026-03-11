@@ -65,4 +65,35 @@ public class UserDal
 
         return cmd.ExecuteNonQuery() > 0;
     }
+
+    public bool LoginExists(string login)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        connection.Open();
+
+        using var cmd = new MySqlCommand(
+            "SELECT COUNT(*) FROM users WHERE login = @login",
+            connection
+        );
+        cmd.Parameters.AddWithValue("@login", login);
+
+        return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+    }
+
+    public int CreateUser(string login, string pin, decimal balance)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        connection.Open();
+
+        using var cmd = new MySqlCommand(
+            "INSERT INTO users (login, pin, balance, is_admin) VALUES (@login, @pin, @balance, FALSE)",
+            connection
+        );
+        cmd.Parameters.AddWithValue("@login", login);
+        cmd.Parameters.AddWithValue("@pin", pin);
+        cmd.Parameters.AddWithValue("@balance", balance);
+
+        cmd.ExecuteNonQuery();
+        return (int)cmd.LastInsertedId;
+    }
 }

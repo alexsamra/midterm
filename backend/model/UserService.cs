@@ -37,4 +37,13 @@ public class UserService
         if (amount <= 0) return false;
         return _userDal.Deposit(userId, amount);
     }
+
+    public (bool success, int? accountId, string? error) CreateUser(string login, string pin, decimal balance)
+    {
+        if (_userDal.LoginExists(login))
+            return (false, null, "Error: Duplicate Login");
+
+        var id = _userDal.CreateUser(login, pin, balance);
+        return id > 0 ? (true, id, null) : (false, null, "Error");
+    }
 }

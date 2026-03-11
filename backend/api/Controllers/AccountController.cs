@@ -39,6 +39,22 @@ public class AccountController : ControllerBase
 
         return Ok();
     }
+
+    [HttpPost("create")]
+    public IActionResult CreateAccount([FromBody] CreateAccountRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Login))
+            return BadRequest(new { message = "Invalid Login" });
+
+        if (request.Pin.Length != 5 || !request.Pin.All(char.IsDigit))
+            return BadRequest(new { message = "Invalid Pin" });
+
+        var (success, accountId, error) = _userService.CreateUser(request.Login, request.Pin, request.Balance);
+        if (!success)
+            return Conflict(new { message = error });
+
+        return Ok(new { id = accountId });
+    }
 }
 
 public class WithdrawRequest
@@ -51,4 +67,11 @@ public class DepositRequest
 {
     public int UserId { get; set; }
     public decimal Amount { get; set; }
+}
+
+public class CreateAccountRequest
+{
+    public string Login { get; set; } = string.Empty;
+    public string Pin { get; set; } = string.Empty;
+    public decimal Balance { get; set; }
 }

@@ -38,7 +38,7 @@ while (true)
             Console.WriteLine();
             if (user.IsAdmin)
             {
-                await AdminMenu(user);
+                await AdminMenu(user, httpClient, jsonOptions);
             }
             else
             {
@@ -153,7 +153,7 @@ static async Task CustomerMenu(UserResponse user, HttpClient httpClient)
     }
 }
 
-static Task AdminMenu(UserResponse user)
+static async Task AdminMenu(UserResponse user, HttpClient httpClient, JsonSerializerOptions jsonOptions)
 {
     while (true)
     {
@@ -171,7 +171,45 @@ static Task AdminMenu(UserResponse user)
         switch (choice)
         {
             case "1":
-                Console.WriteLine("Create New Account - (not yet implemented)");
+                Console.Write("Login: ");
+                var newLogin = Console.ReadLine()?.Trim();
+                if (string.IsNullOrWhiteSpace(newLogin))
+                {
+                    Console.WriteLine("Error: Invalid Login");
+                    break;
+                }
+                Console.Write("Pin Code: ");
+                var newPin = Console.ReadLine()?.Trim();
+                if (newPin == null || newPin.Length != 5 || !newPin.All(char.IsDigit))
+                {
+                    Console.WriteLine("Error: Invalid Pin");
+                    break;
+                }
+                Console.Write("Starting Balance: ");
+                var balanceInput = Console.ReadLine()?.Trim();
+                if (!decimal.TryParse(balanceInput, out var newBalance) || newBalance < 0)
+                {
+                    Console.WriteLine("Error: Invalid balance");
+                    break;
+                }
+                try
+                {
+                    var createResponse = await httpClient.PostAsJsonAsync("/Account/create", new { Login = newLogin, Pin = newPin, Balance = newBalance });
+                    if (createResponse.IsSuccessStatusCode)
+                    {
+                        var result = await createResponse.Content.ReadFromJsonAsync<CreateAccountResponse>(jsonOptions);
+                        Console.WriteLine($"Account Successfully Created – the account number assigned is: {result?.Id}");
+                    }
+                    else
+                    {
+                        var errorResponse = await createResponse.Content.ReadFromJsonAsync<ErrorResponse>(jsonOptions);
+                        Console.WriteLine(errorResponse?.Message ?? "Error: Account creation failed");
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("Error: Check connection");
+                }
                 break;
             case "2":
                 Console.WriteLine("Delete Existing Account - (not yet implemented)");
@@ -183,7 +221,7 @@ static Task AdminMenu(UserResponse user)
                 Console.WriteLine("Search for Account - (not yet implemented)");
                 break;
             case "6":
-                return Task.CompletedTask;
+                return;
             default:
                 Console.WriteLine("Invalid option. Please try again.");
                 break;
@@ -198,5 +236,15 @@ public class UserResponse
     public string Login { get; set; } = string.Empty;
     public decimal? Balance { get; set; }
     public bool IsAdmin { get; set; }
+}
+
+public class CreateAccountResponse
+{
+    public int Id { get; set; }
+}
+
+public class ErrorResponse
+{
+    public string Message { get; set; } = string.Empty;
 }
 
