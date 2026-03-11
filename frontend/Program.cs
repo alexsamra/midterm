@@ -42,7 +42,7 @@ while (true)
             }
             else
             {
-                await CustomerMenu(user);
+                await CustomerMenu(user, httpClient);
             }
         }
         else
@@ -58,7 +58,7 @@ while (true)
     Console.WriteLine();
 }
 
-static Task CustomerMenu(UserResponse user)
+static async Task CustomerMenu(UserResponse user, HttpClient httpClient)
 {
     while (true)
     {
@@ -74,10 +74,69 @@ static Task CustomerMenu(UserResponse user)
         switch (choice)
         {
             case "1":
-                Console.WriteLine("Withdraw Cash - (not yet implemented)");
+                Console.Write("Enter the withdrawal amount: ");
+                var withdrawInput = Console.ReadLine()?.Trim();
+                if (!decimal.TryParse(withdrawInput, out var withdrawAmount) || withdrawAmount <= 0)
+                {
+                    Console.WriteLine("Error: Invalid amount");
+                    break;
+                }
+                if (withdrawAmount > user.Balance)
+                {
+                    Console.WriteLine("Error: Insufficient balance");
+                    break;
+                }
+                try
+                {
+                    var response = await httpClient.PostAsJsonAsync("/Account/withdraw", new { UserId = user.Id, Amount = withdrawAmount });
+                    if (response.IsSuccessStatusCode)
+                    {
+                        user.Balance -= withdrawAmount;
+                        Console.WriteLine("Cash Successfully Withdrawn");
+                        Console.WriteLine($"Account #{user.Id}");
+                        Console.WriteLine($"Date: {DateTime.Now:MM/dd/yyyy}");
+                        Console.WriteLine($"Withdrawn: {withdrawAmount:N0}");
+                        Console.WriteLine($"Balance: {user.Balance:N0}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: Withdrawal failed");
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("Error: Check connection");
+                }
                 break;
             case "3":
-                Console.WriteLine("Deposit Cash - (not yet implemented)");
+                Console.Write("Enter the cash amount to deposit: ");
+                var depositInput = Console.ReadLine()?.Trim();
+                if (!decimal.TryParse(depositInput, out var depositAmount) || depositAmount <= 0)
+                {
+                    Console.WriteLine("Error: Invalid amount");
+                    break;
+                }
+                try
+                {
+                    var response = await httpClient.PostAsJsonAsync("/Account/deposit", new { UserId = user.Id, Amount = depositAmount });
+                    if (response.IsSuccessStatusCode)
+                    {
+                        user.Balance += depositAmount;
+                        Console.WriteLine("Cash Deposited Successfully");
+                        Console.WriteLine($"Account #{user.Id}");
+                        Console.WriteLine($"Date: {DateTime.Now:MM/dd/yyyy}");
+                        Console.WriteLine($"Withdrawn: {depositAmount:N0}");
+                        Console.WriteLine($"Balance: {user.Balance:N0}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: Deposit failed");
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("Error: Check connection");
+                }
                 break;
             case "4":
                 Console.WriteLine($"Account #{user.Id}");
@@ -85,7 +144,7 @@ static Task CustomerMenu(UserResponse user)
                 Console.WriteLine($"Balance: {user.Balance:N2}");
                 break;
             case "5":
-                return Task.CompletedTask;
+                return;
             default:
                 Console.WriteLine("Invalid option. Please try again.");
                 break;
@@ -98,7 +157,7 @@ static Task AdminMenu(UserResponse user)
 {
     while (true)
     {
-        Console.WriteLine($"Welcome, {user.login} (Admin)");
+        Console.WriteLine($"Welcome, {user.Login} (Admin)");
         Console.WriteLine("1----Create New Account");
         Console.WriteLine("2----Delete Existing Account");
         Console.WriteLine("3----Update Account Information");
