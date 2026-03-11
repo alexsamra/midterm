@@ -35,4 +35,34 @@ public class UserDal
         }
         return null;
     }
+
+    public bool Withdraw(int userId, decimal amount)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        connection.Open();
+
+        using var cmd = new MySqlCommand(
+            "UPDATE users SET balance = balance - @amount WHERE id = @id AND balance >= @amount",
+            connection
+        );
+        cmd.Parameters.AddWithValue("@id", userId);
+        cmd.Parameters.AddWithValue("@amount", amount);
+
+        return cmd.ExecuteNonQuery() > 0;
+    }
+
+    public bool Deposit(int userId, decimal amount)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        connection.Open();
+
+        using var cmd = new MySqlCommand(
+            "UPDATE users SET balance = balance + @amount WHERE id = @id",
+            connection
+        );
+        cmd.Parameters.AddWithValue("@id", userId);
+        cmd.Parameters.AddWithValue("@amount", amount);
+
+        return cmd.ExecuteNonQuery() > 0;
+    }
 }

@@ -25,4 +25,16 @@ public class UserService
             IsAdmin = r.isAdmin,
         };
     }
+
+    public bool Withdraw(int userId, decimal amount)
+    {
+        if (amount <= 0) return false;
+        return _userDal.Withdraw(userId, amount);
+    }
+
+    public bool Deposit(int userId, decimal amount)
+    {
+        if (amount <= 0) return false;
+        return _userDal.Deposit(userId, amount);
+    }
 }
