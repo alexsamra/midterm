@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\utils\utils.csproj" />
     <ProjectReference Include="..\model\model.csproj" />
+    <ProjectReference Include="..\dal\dal.csproj" />
   </ItemGroup>
 
 </Project>
