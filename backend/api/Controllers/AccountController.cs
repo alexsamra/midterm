@@ -39,6 +39,58 @@ public class AccountController : ControllerBase
 
         return Ok();
     }
+
+    [HttpPost("create")]
+    public IActionResult CreateAccount([FromBody] CreateAccountRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Login))
+            return BadRequest(new { message = "Invalid Login" });
+
+        if (request.Pin.Length != 5 || !request.Pin.All(char.IsDigit))
+            return BadRequest(new { message = "Invalid Pin" });
+
+        var (success, accountId, error) = _userService.CreateUser(request.Login, request.Pin, request.HolderName, request.Balance, request.Status);
+        if (!success)
+            return Conflict(new { message = error });
+
+        return Ok(new { id = accountId });
+    }
+
+    [HttpGet("{id}")]
+    public IActionResult GetUser(int id)
+    {
+        var user = _userService.GetUserById(id);
+        if (user == null)
+            return NotFound(new { message = "Account not found." });
+
+        return Ok(user);
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult DeleteUser(int id)
+    {
+        var success = _userService.DeleteUser(id);
+        if (!success)
+            return NotFound(new { message = "Account not found." });
+
+        return Ok(new { message = "Account Deleted Successfully" });
+    }
+
+    [HttpPost("update")]
+    public IActionResult UpdateAccount([FromBody] UpdateAccountRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Login))
+            return BadRequest(new { message = "Invalid Login" });
+
+        if (request.Pin.Length != 5 || !request.Pin.All(char.IsDigit))
+            return BadRequest(new { message = "Invalid Pin" });
+
+        var (success, error) = _userService.UpdateUser(request.Id, request.Login, request.Pin, request.HolderName, request.Status);
+        if (!success)
+            return BadRequest(new { message = error });
+
+        return Ok(new { message = "Account Updated Successfully" });
+    }
 }
 
 public class WithdrawRequest
@@ -51,4 +103,22 @@ public class DepositRequest
 {
     public int UserId { get; set; }
     public decimal Amount { get; set; }
+}
+
+public class CreateAccountRequest
+{
+    public string Login { get; set; } = string.Empty;
+    public string Pin { get; set; } = string.Empty;
+    public string HolderName { get; set; } = string.Empty;
+    public decimal Balance { get; set; }
+    public string Status { get; set; } = "Active";
+}
+
+public class UpdateAccountRequest
+{
+    public int Id { get; set; }
+    public string Login { get; set; } = string.Empty;
+    public string Pin { get; set; } = string.Empty;
+    public string HolderName { get; set; } = string.Empty;
+    public string Status { get; set; } = "Active";
 }

@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
 var httpClient = new HttpClient
@@ -38,7 +39,7 @@ while (true)
             Console.WriteLine();
             if (user.IsAdmin)
             {
-                await AdminMenu(user);
+                await AdminMenu(user, httpClient, jsonOptions);
             }
             else
             {
@@ -153,7 +154,7 @@ static async Task CustomerMenu(UserResponse user, HttpClient httpClient)
     }
 }
 
-static Task AdminMenu(UserResponse user)
+static async Task AdminMenu(UserResponse user, HttpClient httpClient, JsonSerializerOptions jsonOptions)
 {
     while (true)
     {
@@ -171,19 +172,193 @@ static Task AdminMenu(UserResponse user)
         switch (choice)
         {
             case "1":
-                Console.WriteLine("Create New Account - (not yet implemented)");
+                Console.Write("Login: ");
+                var newLogin = Console.ReadLine()?.Trim();
+                if (string.IsNullOrWhiteSpace(newLogin))
+                {
+                    Console.WriteLine("Error: Invalid Login");
+                    break;
+                }
+                Console.Write("Pin Code: ");
+                var newPin = Console.ReadLine()?.Trim();
+                if (newPin == null || newPin.Length != 5 || !newPin.All(char.IsDigit))
+                {
+                    Console.WriteLine("Error: Invalid Pin");
+                    break;
+                }
+                Console.Write("Holders Name: ");
+                var newHoldersName = Console.ReadLine()?.Trim();
+                if (string.IsNullOrWhiteSpace(newHoldersName))
+                {
+                    Console.WriteLine("Error: Invalid Holder Name");
+                    break;
+                }
+                Console.Write("Starting Balance: ");
+                var balanceInput = Console.ReadLine()?.Trim();
+                if (!decimal.TryParse(balanceInput, out var newBalance) || newBalance < 0)
+                {
+                    Console.WriteLine("Error: Invalid balance");
+                    break;
+                }
+                Console.Write("Status (Active/Disabled): ");
+                var newStatus = Console.ReadLine()?.Trim();
+                if (newStatus != "Active" && newStatus != "Disabled")
+                {
+                    Console.WriteLine("Error: Invalid Status");
+                    break;
+                }
+                try
+                {
+                    var createResponse = await httpClient.PostAsJsonAsync("/Account/create", new { Login = newLogin, Pin = newPin, HolderName = newHoldersName, Balance = newBalance, Status = newStatus });
+                    if (createResponse.IsSuccessStatusCode)
+                    {
+                        var result = await createResponse.Content.ReadFromJsonAsync<CreateAccountResponse>(jsonOptions);
+                        Console.WriteLine($"Account Successfully Created – the account number assigned is: {result?.Id}");
+                    }
+                    else
+                    {
+                        var errorResponse = await createResponse.Content.ReadFromJsonAsync<ErrorResponse>(jsonOptions);
+                        Console.WriteLine(errorResponse?.Message ?? "Error: Account creation failed");
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("Error: Check connection");
+                }
                 break;
             case "2":
-                Console.WriteLine("Delete Existing Account - (not yet implemented)");
+                Console.Write("Enter the account number to which you want to delete: ");
+                var deleteIdInput = Console.ReadLine()?.Trim();
+                if (!int.TryParse(deleteIdInput, out var deleteId))
+                {
+                    Console.WriteLine("Error: Invalid account number");
+                    break;
+                }
+                try
+                {
+                    var getUserResponse = await httpClient.GetFromJsonAsync<UserResponse>($"/Account/{deleteId}", jsonOptions);
+                    if (getUserResponse == null)
+                    {
+                        Console.WriteLine("Error: Account not found");
+                        break;
+                    }
+                    Console.Write($"You wish to delete the account held by {getUserResponse.HoldersName}. If this information is correct, please re-enter\nthe account number: ");
+                    var confirmInput = Console.ReadLine()?.Trim();
+                    if (!int.TryParse(confirmInput, out var confirmId) || confirmId != deleteId)
+                    {
+                        Console.WriteLine("Error: Different account number");
+                        break;
+                    }
+                    var deleteResponse = await httpClient.DeleteAsync($"/Account/{deleteId}");
+                    if (deleteResponse.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("Account Deleted Successfully");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: Deletion failed");
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("Error: Account not found");
+                }
                 break;
             case "3":
-                Console.WriteLine("Update Account Information - (not yet implemented)");
+                Console.WriteLine("Enter the Account Number: ");
+                var accountIdInput = Console.ReadLine()?.Trim();
+                if (!int.TryParse(accountIdInput, out var accountId))
+                {
+                    Console.WriteLine("Error: Invalid account number");
+                    break;
+                }
+                try
+                {
+                    var getUserResponse = await httpClient.GetFromJsonAsync<UserResponse>($"/Account/{accountId}", jsonOptions);
+                    if (getUserResponse == null)
+                    {
+                        Console.WriteLine("Error: Account not found");
+                        break;
+                    }
+
+                    Console.WriteLine($"Account #{accountId}");
+                    Console.Write("Holder: ");
+                    var newHolder = Console.ReadLine()?.Trim();
+                    if (string.IsNullOrWhiteSpace(newHolder))
+                    {
+                        Console.WriteLine("Error: Invalid Holder Name");
+                        break;
+                    }
+                    Console.WriteLine($"Balance: {getUserResponse.Balance}");
+                    Console.Write("Status (Active/Disabled): ");
+                    var updateStatus = Console.ReadLine()?.Trim();
+                    if (updateStatus != "Active" && updateStatus != "Disabled")
+                    {
+                        Console.WriteLine("Error: Invalid Status");
+                        break;
+                    }
+                    Console.Write("Login: ");
+                    var updateLogin = Console.ReadLine()?.Trim();
+                    if (string.IsNullOrWhiteSpace(updateLogin))
+                    {
+                        Console.WriteLine("Error: Invalid Login");
+                        break;
+                    }
+                    Console.Write("Pin Code: ");
+                    var updatePin = Console.ReadLine()?.Trim();
+                    if (updatePin == null || updatePin.Length != 5 || !updatePin.All(char.IsDigit))
+                    {
+                        Console.WriteLine("Error: Invalid Pin");
+                        break;
+                    }
+
+                    var updateResponse = await httpClient.PostAsJsonAsync("/Account/update", new { Id = accountId, Login = updateLogin, Pin = updatePin, HolderName = newHolder, Status = updateStatus });
+                    if (updateResponse.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("Account Updated Successfully");
+                    }
+                    else
+                    {
+                        var errorResponse = await updateResponse.Content.ReadFromJsonAsync<ErrorResponse>(jsonOptions);
+                        Console.WriteLine(errorResponse?.Message ?? "Error: Update failed");
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("Error: Check connection");
+                }
                 break;
             case "4":
-                Console.WriteLine("Search for Account - (not yet implemented)");
+                Console.Write("Enter the account: ");
+                var searchAccountInput = Console.ReadLine()?.Trim();
+                if (!int.TryParse(searchAccountInput, out var searchAccountId))
+                {
+                    Console.WriteLine("Error: Invalid account number");
+                    break;
+                }
+                try
+                {
+                    var getUserResponse = await httpClient.GetFromJsonAsync<UserResponse>($"/Account/{searchAccountId}", jsonOptions);
+                    if (getUserResponse == null)
+                    {
+                        Console.WriteLine("Error: Account not found");
+                        break;
+                    }
+                    Console.WriteLine($"Account #{searchAccountId}");
+                    Console.WriteLine($"Holder: {getUserResponse.HoldersName}");
+                    Console.WriteLine($"Balance: {getUserResponse.Balance}");
+                    Console.WriteLine($"Status: {getUserResponse.Status}");
+                    Console.WriteLine($"Login: {getUserResponse.Login}");
+                    Console.WriteLine($"Pin: {getUserResponse.Pin}");
+
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("Error: Check connection");
+                }
                 break;
             case "6":
-                return Task.CompletedTask;
+                return;
             default:
                 Console.WriteLine("Invalid option. Please try again.");
                 break;
@@ -196,7 +371,20 @@ public class UserResponse
 {
     public int Id { get; set; }
     public string Login { get; set; } = string.Empty;
+    public string Pin { get; set; } = string.Empty;
+    public string? HoldersName { get; set; }
     public decimal? Balance { get; set; }
     public bool IsAdmin { get; set; }
+    public string Status { get; set; } = string.Empty;
+}
+
+public class CreateAccountResponse
+{
+    public int Id { get; set; }
+}
+
+public class ErrorResponse
+{
+    public string Message { get; set; } = string.Empty;
 }
 
