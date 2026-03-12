@@ -11,13 +11,13 @@ public class UserDal
         _connectionString = connectionString;
     }
 
-    public (int id, string login, string? holdersName, decimal? balance, bool isAdmin, string status)? ValidateLogin(string login, string pin)
+    public (int id, string login, string pin, string? holdersName, decimal? balance, bool isAdmin, string status)? ValidateLogin(string login, string pin)
     {
         using var connection = new MySqlConnection(_connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
-            "SELECT id, login, holders_name, balance, is_admin, status FROM users WHERE login = @login AND pin = @pin",
+            "SELECT id, login, pin, holders_name, balance, is_admin, status FROM users WHERE login = @login AND pin = @pin",
             connection
         );
         cmd.Parameters.AddWithValue("@login", login);
@@ -29,6 +29,7 @@ public class UserDal
             return (
                 reader.GetInt32("id"),
                 reader.GetString("login"),
+                reader.GetString("pin"),
                 reader.IsDBNull(reader.GetOrdinal("holders_name")) ? null : reader.GetString("holders_name"),
                 reader.IsDBNull(reader.GetOrdinal("balance")) ? null : reader.GetDecimal("balance"),
                 reader.GetBoolean("is_admin"),
@@ -101,13 +102,13 @@ public class UserDal
         return (int)cmd.LastInsertedId;
     }
 
-    public (int id, string login, string? holdersName, decimal? balance, bool isAdmin, string status)? GetUserById(int userId)
+    public (int id, string login, string pin, string? holdersName, decimal? balance, bool isAdmin, string status)? GetUserById(int userId)
     {
         using var connection = new MySqlConnection(_connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
-            "SELECT id, login, holders_name, balance, is_admin, status FROM users WHERE id = @id",
+            "SELECT id, login, pin, holders_name, balance, is_admin, status FROM users WHERE id = @id",
             connection
         );
         cmd.Parameters.AddWithValue("@id", userId);
@@ -118,6 +119,7 @@ public class UserDal
             return (
                 reader.GetInt32("id"),
                 reader.GetString("login"),
+                reader.GetString("pin"),
                 reader.IsDBNull(reader.GetOrdinal("holders_name")) ? null : reader.GetString("holders_name"),
                 reader.IsDBNull(reader.GetOrdinal("balance")) ? null : reader.GetDecimal("balance"),
                 reader.GetBoolean("is_admin"),

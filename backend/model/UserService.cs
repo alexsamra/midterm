@@ -21,6 +21,7 @@ public class UserService
         {
             Id = r.id,
             Login = r.login,
+            Pin = r.pin,
             HoldersName = r.holdersName,
             Balance = r.balance,
             IsAdmin = r.isAdmin,
@@ -59,6 +60,7 @@ public class UserService
         {
             Id = r.id,
             Login = r.login,
+            Pin = r.pin,
             HoldersName = r.holdersName,
             Balance = r.balance,
             IsAdmin = r.isAdmin,

@@ -329,7 +329,33 @@ static async Task AdminMenu(UserResponse user, HttpClient httpClient, JsonSerial
                 }
                 break;
             case "4":
-                Console.WriteLine("Search for Account - (not yet implemented)");
+                Console.Write("Enter the account: ");
+                var searchAccountInput = Console.ReadLine()?.Trim();
+                if (!int.TryParse(searchAccountInput, out var searchAccountId))
+                {
+                    Console.WriteLine("Error: Invalid account number");
+                    break;
+                }
+                try
+                {
+                    var getUserResponse = await httpClient.GetFromJsonAsync<UserResponse>($"/Account/{searchAccountId}", jsonOptions);
+                    if (getUserResponse == null)
+                    {
+                        Console.WriteLine("Error: Account not found");
+                        break;
+                    }
+                    Console.WriteLine($"Account #{searchAccountId}");
+                    Console.WriteLine($"Holder: {getUserResponse.HoldersName}");
+                    Console.WriteLine($"Balance: {getUserResponse.Balance}");
+                    Console.WriteLine($"Status: {getUserResponse.Status}");
+                    Console.WriteLine($"Login: {getUserResponse.Login}");
+                    Console.WriteLine($"Pin: {getUserResponse.Pin}");
+
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("Error: Check connection");
+                }
                 break;
             case "6":
                 return;
@@ -345,6 +371,7 @@ public class UserResponse
 {
     public int Id { get; set; }
     public string Login { get; set; } = string.Empty;
+    public string Pin { get; set; } = string.Empty;
     public string? HoldersName { get; set; }
     public decimal? Balance { get; set; }
     public bool IsAdmin { get; set; }
