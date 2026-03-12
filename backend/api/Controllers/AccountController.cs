@@ -75,6 +75,22 @@ public class AccountController : ControllerBase
 
         return Ok(new { message = "Account Deleted Successfully" });
     }
+
+    [HttpPost("update")]
+    public IActionResult UpdateAccount([FromBody] UpdateAccountRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Login))
+            return BadRequest(new { message = "Invalid Login" });
+
+        if (request.Pin.Length != 5 || !request.Pin.All(char.IsDigit))
+            return BadRequest(new { message = "Invalid Pin" });
+
+        var (success, error) = _userService.UpdateUser(request.Id, request.Login, request.Pin, request.HolderName, request.Status);
+        if (!success)
+            return BadRequest(new { message = error });
+
+        return Ok(new { message = "Account Updated Successfully" });
+    }
 }
 
 public class WithdrawRequest
@@ -95,5 +111,14 @@ public class CreateAccountRequest
     public string Pin { get; set; } = string.Empty;
     public string HolderName { get; set; } = string.Empty;
     public decimal Balance { get; set; }
+    public string Status { get; set; } = "Active";
+}
+
+public class UpdateAccountRequest
+{
+    public int Id { get; set; }
+    public string Login { get; set; } = string.Empty;
+    public string Pin { get; set; } = string.Empty;
+    public string HolderName { get; set; } = string.Empty;
     public string Status { get; set; } = "Active";
 }

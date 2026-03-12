@@ -140,4 +140,22 @@ public class UserDal
 
         return cmd.ExecuteNonQuery() > 0;
     }
+
+    public bool UpdateUser(int userId, string login, string pin, string holdersName, string status)
+    {
+        using var connection = new MySqlConnection(_connectionString);
+        connection.Open();
+
+        using var cmd = new MySqlCommand(
+            "UPDATE users SET login = @login, pin = @pin, holders_name = @holdersName, status = @status WHERE id = @id",
+            connection
+        );
+        cmd.Parameters.AddWithValue("@id", userId);
+        cmd.Parameters.AddWithValue("@login", login);
+        cmd.Parameters.AddWithValue("@pin", pin);
+        cmd.Parameters.AddWithValue("@holdersName", holdersName);
+        cmd.Parameters.AddWithValue("@status", status);
+
+        return cmd.ExecuteNonQuery() > 0;
+    }
 }

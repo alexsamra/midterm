@@ -70,4 +70,17 @@ public class UserService
     {
         return _userDal.DeleteUser(userId);
     }
+
+    public (bool success, string? error) UpdateUser(int userId, string login, string pin, string holdersName, string status)
+    {
+        var existing = _userDal.GetUserById(userId);
+        if (existing == null)
+            return (false, "Account not found.");
+
+        if (existing.Value.login != login && _userDal.LoginExists(login))
+            return (false, "Error: Duplicate Login");
+
+        var updated = _userDal.UpdateUser(userId, login, pin, holdersName, status);
+        return updated ? (true, null) : (false, "Error: Update failed");
+    }
 }

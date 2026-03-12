@@ -265,7 +265,68 @@ static async Task AdminMenu(UserResponse user, HttpClient httpClient, JsonSerial
                 }
                 break;
             case "3":
-                Console.WriteLine("Update Account Information - (not yet implemented)");
+                Console.WriteLine("Enter the Account Number: ");
+                var accountIdInput = Console.ReadLine()?.Trim();
+                if (!int.TryParse(accountIdInput, out var accountId))
+                {
+                    Console.WriteLine("Error: Invalid account number");
+                    break;
+                }
+                try
+                {
+                    var getUserResponse = await httpClient.GetFromJsonAsync<UserResponse>($"/Account/{accountId}", jsonOptions);
+                    if (getUserResponse == null)
+                    {
+                        Console.WriteLine("Error: Account not found");
+                        break;
+                    }
+
+                    Console.WriteLine($"Account #{accountId}");
+                    Console.Write("Holder: ");
+                    var newHolder = Console.ReadLine()?.Trim();
+                    if (string.IsNullOrWhiteSpace(newHolder))
+                    {
+                        Console.WriteLine("Error: Invalid Holder Name");
+                        break;
+                    }
+                    Console.WriteLine($"Balance: {getUserResponse.Balance}");
+                    Console.Write("Status (Active/Disabled): ");
+                    var updateStatus = Console.ReadLine()?.Trim();
+                    if (updateStatus != "Active" && updateStatus != "Disabled")
+                    {
+                        Console.WriteLine("Error: Invalid Status");
+                        break;
+                    }
+                    Console.Write("Login: ");
+                    var updateLogin = Console.ReadLine()?.Trim();
+                    if (string.IsNullOrWhiteSpace(updateLogin))
+                    {
+                        Console.WriteLine("Error: Invalid Login");
+                        break;
+                    }
+                    Console.Write("Pin Code: ");
+                    var updatePin = Console.ReadLine()?.Trim();
+                    if (updatePin == null || updatePin.Length != 5 || !updatePin.All(char.IsDigit))
+                    {
+                        Console.WriteLine("Error: Invalid Pin");
+                        break;
+                    }
+
+                    var updateResponse = await httpClient.PostAsJsonAsync("/Account/update", new { Id = accountId, Login = updateLogin, Pin = updatePin, HolderName = newHolder, Status = updateStatus });
+                    if (updateResponse.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("Account Updated Successfully");
+                    }
+                    else
+                    {
+                        var errorResponse = await updateResponse.Content.ReadFromJsonAsync<ErrorResponse>(jsonOptions);
+                        Console.WriteLine(errorResponse?.Message ?? "Error: Update failed");
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("Error: Check connection");
+                }
                 break;
             case "4":
                 Console.WriteLine("Search for Account - (not yet implemented)");
