@@ -49,7 +49,7 @@ public class AccountController : ControllerBase
         if (request.Pin.Length != 5 || !request.Pin.All(char.IsDigit))
             return BadRequest(new { message = "Invalid Pin" });
 
-        var (success, accountId, error) = _userService.CreateUser(request.Login, request.Pin, request.Balance);
+        var (success, accountId, error) = _userService.CreateUser(request.Login, request.Pin, request.HolderName, request.Balance, request.Status);
         if (!success)
             return Conflict(new { message = error });
 
@@ -73,5 +73,7 @@ public class CreateAccountRequest
 {
     public string Login { get; set; } = string.Empty;
     public string Pin { get; set; } = string.Empty;
+    public string HolderName { get; set; } = string.Empty;
     public decimal Balance { get; set; }
+    public string Status { get; set; } = "Active";
 }

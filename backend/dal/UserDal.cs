@@ -11,13 +11,13 @@ public class UserDal
         _connectionString = connectionString;
     }
 
-    public (int id, string login, decimal? balance, bool isAdmin)? ValidateLogin(string login, string pin)
+    public (int id, string login, string? holdersName, decimal? balance, bool isAdmin, string status)? ValidateLogin(string login, string pin)
     {
         using var connection = new MySqlConnection(_connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
-            "SELECT id, login, balance, is_admin FROM users WHERE login = @login AND pin = @pin",
+            "SELECT id, login, holders_name, balance, is_admin, status FROM users WHERE login = @login AND pin = @pin",
             connection
         );
         cmd.Parameters.AddWithValue("@login", login);
@@ -29,8 +29,10 @@ public class UserDal
             return (
                 reader.GetInt32("id"),
                 reader.GetString("login"),
+                reader.IsDBNull(reader.GetOrdinal("holders_name")) ? null : reader.GetString("holders_name"),
                 reader.IsDBNull(reader.GetOrdinal("balance")) ? null : reader.GetDecimal("balance"),
-                reader.GetBoolean("is_admin")
+                reader.GetBoolean("is_admin"),
+                reader.GetString("status")
             );
         }
         return null;
@@ -80,18 +82,20 @@ public class UserDal
         return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
     }
 
-    public int CreateUser(string login, string pin, decimal balance)
+    public int CreateUser(string login, string pin, string holdersName, decimal balance, string status = "Active")
     {
         using var connection = new MySqlConnection(_connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
-            "INSERT INTO users (login, pin, balance, is_admin) VALUES (@login, @pin, @balance, FALSE)",
+            "INSERT INTO users (login, pin, holders_name, balance, is_admin, status) VALUES (@login, @pin, @holdersName, @balance, FALSE, @status)",
             connection
         );
         cmd.Parameters.AddWithValue("@login", login);
         cmd.Parameters.AddWithValue("@pin", pin);
+        cmd.Parameters.AddWithValue("@holdersName", holdersName);
         cmd.Parameters.AddWithValue("@balance", balance);
+        cmd.Parameters.AddWithValue("@status", status);
 
         cmd.ExecuteNonQuery();
         return (int)cmd.LastInsertedId;

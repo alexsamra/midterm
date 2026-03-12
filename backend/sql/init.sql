@@ -7,23 +7,48 @@ CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     login VARCHAR(50) NOT NULL UNIQUE,
     pin VARCHAR(5) NOT NULL,
+    holders_name VARCHAR(100) NULL,
     balance DECIMAL(18, 2) NULL,
-    is_admin BOOLEAN NOT NULL DEFAULT FALSE
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+    status VARCHAR(20) NOT NULL DEFAULT 'Active'
 );
 
 INSERT INTO
-    users (login, pin, balance, is_admin)
-VALUES ('admin', '12345', NULL, TRUE)
+    users (
+        login,
+        pin,
+        holders_name,
+        balance,
+        is_admin,
+        status
+    )
+VALUES (
+        'admin',
+        '12345',
+        NULL,
+        NULL,
+        TRUE,
+        'Active'
+    )
 ON DUPLICATE KEY UPDATE
     login = login;
 
 INSERT INTO
-    users (login, pin, balance, is_admin)
+    users (
+        login,
+        pin,
+        holders_name,
+        balance,
+        is_admin,
+        status
+    )
 VALUES (
         'Adnan123',
         '12345',
+        'Adnan',
         158100.00,
-        FALSE
+        FALSE,
+        'Active'
     )
 ON DUPLICATE KEY UPDATE
     login = login;

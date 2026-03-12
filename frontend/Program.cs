@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
 var httpClient = new HttpClient
@@ -185,6 +186,13 @@ static async Task AdminMenu(UserResponse user, HttpClient httpClient, JsonSerial
                     Console.WriteLine("Error: Invalid Pin");
                     break;
                 }
+                Console.Write("Holders Name: ");
+                var newHoldersName = Console.ReadLine()?.Trim();
+                if (string.IsNullOrWhiteSpace(newHoldersName))
+                {
+                    Console.WriteLine("Error: Invalid Holder Name");
+                    break;
+                }
                 Console.Write("Starting Balance: ");
                 var balanceInput = Console.ReadLine()?.Trim();
                 if (!decimal.TryParse(balanceInput, out var newBalance) || newBalance < 0)
@@ -192,9 +200,16 @@ static async Task AdminMenu(UserResponse user, HttpClient httpClient, JsonSerial
                     Console.WriteLine("Error: Invalid balance");
                     break;
                 }
+                Console.Write("Status (Active/Disabled): ");
+                var newStatus = Console.ReadLine()?.Trim();
+                if (newStatus != "Active" && newStatus != "Disabled")
+                {
+                    Console.WriteLine("Error: Invalid Status");
+                    break;
+                }
                 try
                 {
-                    var createResponse = await httpClient.PostAsJsonAsync("/Account/create", new { Login = newLogin, Pin = newPin, Balance = newBalance });
+                    var createResponse = await httpClient.PostAsJsonAsync("/Account/create", new { Login = newLogin, Pin = newPin, HolderName = newHoldersName, Balance = newBalance, Status = newStatus });
                     if (createResponse.IsSuccessStatusCode)
                     {
                         var result = await createResponse.Content.ReadFromJsonAsync<CreateAccountResponse>(jsonOptions);
@@ -234,8 +249,10 @@ public class UserResponse
 {
     public int Id { get; set; }
     public string Login { get; set; } = string.Empty;
+    public string? HoldersName { get; set; }
     public decimal? Balance { get; set; }
     public bool IsAdmin { get; set; }
+    public string Status { get; set; } = string.Empty;
 }
 
 public class CreateAccountResponse
