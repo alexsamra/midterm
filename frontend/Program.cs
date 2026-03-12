@@ -227,7 +227,42 @@ static async Task AdminMenu(UserResponse user, HttpClient httpClient, JsonSerial
                 }
                 break;
             case "2":
-                Console.WriteLine("Delete Existing Account - (not yet implemented)");
+                Console.Write("Enter the account number to which you want to delete: ");
+                var deleteIdInput = Console.ReadLine()?.Trim();
+                if (!int.TryParse(deleteIdInput, out var deleteId))
+                {
+                    Console.WriteLine("Error: Invalid account number");
+                    break;
+                }
+                try
+                {
+                    var getUserResponse = await httpClient.GetFromJsonAsync<UserResponse>($"/Account/{deleteId}", jsonOptions);
+                    if (getUserResponse == null)
+                    {
+                        Console.WriteLine("Error: Account not found");
+                        break;
+                    }
+                    Console.Write($"You wish to delete the account held by {getUserResponse.HoldersName}. If this information is correct, please re-enter\nthe account number: ");
+                    var confirmInput = Console.ReadLine()?.Trim();
+                    if (!int.TryParse(confirmInput, out var confirmId) || confirmId != deleteId)
+                    {
+                        Console.WriteLine("Error: Different account number");
+                        break;
+                    }
+                    var deleteResponse = await httpClient.DeleteAsync($"/Account/{deleteId}");
+                    if (deleteResponse.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("Account Deleted Successfully");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: Deletion failed");
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    Console.WriteLine("Error: Account not found");
+                }
                 break;
             case "3":
                 Console.WriteLine("Update Account Information - (not yet implemented)");

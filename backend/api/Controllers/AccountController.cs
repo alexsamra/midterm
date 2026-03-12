@@ -55,6 +55,26 @@ public class AccountController : ControllerBase
 
         return Ok(new { id = accountId });
     }
+
+    [HttpGet("{id}")]
+    public IActionResult GetUser(int id)
+    {
+        var user = _userService.GetUserById(id);
+        if (user == null)
+            return NotFound(new { message = "Account not found." });
+
+        return Ok(user);
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult DeleteUser(int id)
+    {
+        var success = _userService.DeleteUser(id);
+        if (!success)
+            return NotFound(new { message = "Account not found." });
+
+        return Ok(new { message = "Account Deleted Successfully" });
+    }
 }
 
 public class WithdrawRequest
