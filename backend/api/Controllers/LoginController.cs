@@ -3,33 +3,39 @@ using model;
 
 namespace api.Controllers;
 
+/// Authentication endpoint
+
 [ApiController]
 [Route("[controller]")]
 public class LoginController : ControllerBase
 {
-    private readonly UserService _userService;
+    private readonly IAccountService _accountService;
 
-    public LoginController(UserService userService)
+    public LoginController(IAccountService accountService)
     {
-        _userService = userService;
+        _accountService = accountService;
     }
 
     [HttpPost]
     public IActionResult Login([FromBody] LoginRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Login) || string.IsNullOrWhiteSpace(request.Pin))
-            return BadRequest(new { message = "Login and pin must be valid inputs" });
+        var (validLogin, loginError) = AccountValidator.ValidateLogin(request.Login);
+        if (!validLogin)
+            return BadRequest(new { message = loginError });
 
-        if (request.Pin.Length != 5 || !request.Pin.All(char.IsDigit))
-            return BadRequest(new { message = "Pin must be 5 digits long" });
+        var (validPin, pinError) = AccountValidator.ValidatePin(request.Pin);
+        if (!validPin)
+            return BadRequest(new { message = pinError });
 
-        var user = _userService.ValidateLogin(request.Login, request.Pin);
+        var user = _accountService.ValidateLogin(request.Login, request.Pin);
         if (user == null)
-            return Unauthorized(new { message = "Incorrect login or pin" });
+            return Unauthorized(new { message = "Invalid login or pin." });
 
         return Ok(user);
     }
 }
+
+/// Login DTO
 
 public class LoginRequest
 {

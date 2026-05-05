@@ -2,7 +2,7 @@
 
 namespace dal;
 
-public class UserDal
+public class UserDal : IUserRepository
 {
     private readonly string _connectionString;
 
