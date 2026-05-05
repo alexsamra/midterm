@@ -1,14 +1,13 @@
-using System.Text.Json;
 using model;
 
 namespace frontend.Model;
+
+/// Terminal application UI
 
 public static class TerminalApp
 {
     public static void Run(BankClient client)
     {
-        var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
         while (true)
         {
             Console.Write("Enter login: ");
@@ -35,7 +34,7 @@ public static class TerminalApp
                 Console.WriteLine();
                 if (user.IsAdmin)
                 {
-                    AdminMenu(user, client, jsonOptions);
+                    AdminMenu(user, client);
                 }
                 else
                 {
@@ -69,7 +68,7 @@ public static class TerminalApp
                 case "1":
                     Console.Write("Enter the withdrawal amount: ");
                     var withdrawInput = Console.ReadLine()?.Trim();
-                    if (!decimal.TryParse(withdrawInput, out var withdrawAmount) || withdrawAmount <= 0)
+                    if (!decimal.TryParse(withdrawInput, out var withdrawAmount))
                     {
                         Console.WriteLine("Error: Invalid amount");
                         break;
@@ -81,7 +80,7 @@ public static class TerminalApp
                     }
                     try
                     {
-                        var success = client.Withdraw(user.Id, withdrawAmount);
+                        var (success, error) = client.Withdraw(user.Id, withdrawAmount);
                         if (success)
                         {
                             if (user.Balance.HasValue)
@@ -94,25 +93,25 @@ public static class TerminalApp
                         }
                         else
                         {
-                            Console.WriteLine("Error: Withdrawal failed");
+                            Console.WriteLine($"Error: {error}");
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine("Error: Check connection");
+                        Console.WriteLine($"Error: {ex.Message}");
                     }
                     break;
                 case "3":
                     Console.Write("Enter the cash amount to deposit: ");
                     var depositInput = Console.ReadLine()?.Trim();
-                    if (!decimal.TryParse(depositInput, out var depositAmount) || depositAmount <= 0)
+                    if (!decimal.TryParse(depositInput, out var depositAmount))
                     {
                         Console.WriteLine("Error: Invalid amount");
                         break;
                     }
                     try
                     {
-                        var success = client.Deposit(user.Id, depositAmount);
+                        var (success, error) = client.Deposit(user.Id, depositAmount);
                         if (success)
                         {
                             if (user.Balance.HasValue)
@@ -120,17 +119,17 @@ public static class TerminalApp
                             Console.WriteLine("Cash Deposited Successfully");
                             Console.WriteLine($"Account #{user.Id}");
                             Console.WriteLine($"Date: {DateTime.Now:MM/dd/yyyy}");
-                            Console.WriteLine($"Withdrawn: {depositAmount:N0}");
+                            Console.WriteLine($"Deposited: {depositAmount:N0}");
                             Console.WriteLine($"Balance: {user.Balance:N0}");
                         }
                         else
                         {
-                            Console.WriteLine("Error: Deposit failed");
+                            Console.WriteLine($"Error: {error}");
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine("Error: Check connection");
+                        Console.WriteLine($"Error: {ex.Message}");
                     }
                     break;
                 case "4":
@@ -148,7 +147,7 @@ public static class TerminalApp
         }
     }
 
-    private static void AdminMenu(User user, BankClient client, JsonSerializerOptions jsonOptions)
+    private static void AdminMenu(User user, BankClient client)
     {
         while (true)
         {
@@ -166,187 +165,16 @@ public static class TerminalApp
             switch (choice)
             {
                 case "1":
-                    Console.Write("Login: ");
-                    var newLogin = Console.ReadLine()?.Trim();
-                    if (string.IsNullOrWhiteSpace(newLogin))
-                    {
-                        Console.WriteLine("Error: Invalid Login");
-                        break;
-                    }
-                    Console.Write("Pin Code: ");
-                    var newPin = Console.ReadLine()?.Trim();
-                    if (newPin == null || newPin.Length != 5 || !newPin.All(char.IsDigit))
-                    {
-                        Console.WriteLine("Error: Invalid Pin");
-                        break;
-                    }
-                    Console.Write("Holders Name: ");
-                    var newHoldersName = Console.ReadLine()?.Trim();
-                    if (string.IsNullOrWhiteSpace(newHoldersName))
-                    {
-                        Console.WriteLine("Error: Invalid Holder Name");
-                        break;
-                    }
-                    Console.Write("Starting Balance: ");
-                    var balanceInput = Console.ReadLine()?.Trim();
-                    if (!decimal.TryParse(balanceInput, out var newBalance) || newBalance < 0)
-                    {
-                        Console.WriteLine("Error: Invalid balance");
-                        break;
-                    }
-                    Console.Write("Status (Active/Disabled): ");
-                    var newStatus = Console.ReadLine()?.Trim();
-                    if (newStatus != "Active" && newStatus != "Disabled")
-                    {
-                        Console.WriteLine("Error: Invalid Status");
-                        break;
-                    }
-                    try
-                    {
-                        var (success, createdAccountId, error) = client.CreateAccount(newLogin, newPin, newHoldersName, newBalance, newStatus);
-                        if (success)
-                        {
-                            Console.WriteLine($"Account Successfully Created – the account number assigned is: {createdAccountId}");
-                        }
-                        else
-                        {
-                            Console.WriteLine(error ?? "Error: Account creation failed");
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("Error: Check connection");
-                    }
+                    HandleCreateAccount(client);
                     break;
                 case "2":
-                    Console.Write("Enter the account number to which you want to delete: ");
-                    var deleteIdInput = Console.ReadLine()?.Trim();
-                    if (!int.TryParse(deleteIdInput, out var deleteId))
-                    {
-                        Console.WriteLine("Error: Invalid account number");
-                        break;
-                    }
-                    try
-                    {
-                        var getUserResponse = client.GetUser(deleteId);
-                        if (getUserResponse == null)
-                        {
-                            Console.WriteLine("Error: Account not found");
-                            break;
-                        }
-                        Console.Write($"You wish to delete the account held by {getUserResponse.HoldersName}. If this information is correct, please re-enter\nthe account number: ");
-                        var confirmInput = Console.ReadLine()?.Trim();
-                        if (!int.TryParse(confirmInput, out var confirmId) || confirmId != deleteId)
-                        {
-                            Console.WriteLine("Error: Different account number");
-                            break;
-                        }
-                        var deleteResponse = client.DeleteUser(deleteId);
-                        if (deleteResponse)
-                        {
-                            Console.WriteLine("Account Deleted Successfully");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Error: Deletion failed");
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("Error: Account not found");
-                    }
+                    HandleDeleteAccount(client);
                     break;
                 case "3":
-                    Console.WriteLine("Enter the Account Number: ");
-                    var accountIdInput = Console.ReadLine()?.Trim();
-                    if (!int.TryParse(accountIdInput, out var accountId))
-                    {
-                        Console.WriteLine("Error: Invalid account number");
-                        break;
-                    }
-                    try
-                    {
-                        var getUserResponse = client.GetUser(accountId);
-                        if (getUserResponse == null)
-                        {
-                            Console.WriteLine("Error: Account not found");
-                            break;
-                        }
-
-                        Console.WriteLine($"Account #{accountId}");
-                        Console.Write("Holder: ");
-                        var newHolder = Console.ReadLine()?.Trim();
-                        if (string.IsNullOrWhiteSpace(newHolder))
-                        {
-                            Console.WriteLine("Error: Invalid Holder Name");
-                            break;
-                        }
-                        Console.WriteLine($"Balance: {getUserResponse.Balance}");
-                        Console.Write("Status (Active/Disabled): ");
-                        var updateStatus = Console.ReadLine()?.Trim();
-                        if (updateStatus != "Active" && updateStatus != "Disabled")
-                        {
-                            Console.WriteLine("Error: Invalid Status");
-                            break;
-                        }
-                        Console.Write("Login: ");
-                        var updateLogin = Console.ReadLine()?.Trim();
-                        if (string.IsNullOrWhiteSpace(updateLogin))
-                        {
-                            Console.WriteLine("Error: Invalid Login");
-                            break;
-                        }
-                        Console.Write("Pin Code: ");
-                        var updatePin = Console.ReadLine()?.Trim();
-                        if (updatePin == null || updatePin.Length != 5 || !updatePin.All(char.IsDigit))
-                        {
-                            Console.WriteLine("Error: Invalid Pin");
-                            break;
-                        }
-
-                        var (success, error) = client.UpdateAccount(accountId, updateLogin, updatePin, newHolder, updateStatus);
-                        if (success)
-                        {
-                            Console.WriteLine("Account Updated Successfully");
-                        }
-                        else
-                        {
-                            Console.WriteLine(error ?? "Error: Update failed");
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("Error: Check connection");
-                    }
+                    HandleUpdateAccount(client);
                     break;
                 case "4":
-                    Console.Write("Enter the account: ");
-                    var searchAccountInput = Console.ReadLine()?.Trim();
-                    if (!int.TryParse(searchAccountInput, out var searchAccountId))
-                    {
-                        Console.WriteLine("Error: Invalid account number");
-                        break;
-                    }
-                    try
-                    {
-                        var getUserResponse = client.GetUser(searchAccountId);
-                        if (getUserResponse == null)
-                        {
-                            Console.WriteLine("Error: Account not found");
-                            break;
-                        }
-                        Console.WriteLine($"Account #{searchAccountId}");
-                        Console.WriteLine($"Holder: {getUserResponse.HoldersName}");
-                        Console.WriteLine($"Balance: {getUserResponse.Balance}");
-                        Console.WriteLine($"Status: {getUserResponse.Status}");
-                        Console.WriteLine($"Login: {getUserResponse.Login}");
-                        Console.WriteLine($"Pin: {getUserResponse.Pin}");
-
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("Error: Check connection");
-                    }
+                    HandleSearchAccount(client);
                     break;
                 case "6":
                     return;
@@ -355,6 +183,210 @@ public static class TerminalApp
                     break;
             }
             Console.WriteLine();
+        }
+    }
+
+    private static void HandleCreateAccount(BankClient client)
+    {
+        Console.Write("Login: ");
+        var newLogin = Console.ReadLine()?.Trim();
+        if (string.IsNullOrWhiteSpace(newLogin))
+        {
+            Console.WriteLine("Error: Invalid Login");
+            return;
+        }
+
+        Console.Write("Pin Code: ");
+        var newPin = Console.ReadLine()?.Trim();
+        if (newPin == null || newPin.Length != AccountConstants.PinLength || !newPin.All(char.IsDigit))
+        {
+            Console.WriteLine($"Error: Pin must be {AccountConstants.PinLength} digits");
+            return;
+        }
+
+        Console.Write("Holders Name: ");
+        var newHoldersName = Console.ReadLine()?.Trim();
+        if (string.IsNullOrWhiteSpace(newHoldersName))
+        {
+            Console.WriteLine("Error: Invalid Holder Name");
+            return;
+        }
+
+        Console.Write("Starting Balance: ");
+        var balanceInput = Console.ReadLine()?.Trim();
+        if (!decimal.TryParse(balanceInput, out var newBalance) || newBalance < 0)
+        {
+            Console.WriteLine("Error: Invalid balance");
+            return;
+        }
+
+        Console.Write("Status (Active/Disabled): ");
+        var newStatus = Console.ReadLine()?.Trim();
+        if (!AccountConstants.ValidStatuses.Contains(newStatus ?? ""))
+        {
+            Console.WriteLine($"Error: Status must be one of: {string.Join(", ", AccountConstants.ValidStatuses)}");
+            return;
+        }
+
+        try
+        {
+            var (success, createdAccountId, error) = client.CreateAccount(newLogin, newPin, newHoldersName, newBalance, newStatus!);
+            if (success)
+            {
+                Console.WriteLine($"Account Successfully Created – the account number assigned is: {createdAccountId}");
+            }
+            else
+            {
+                Console.WriteLine($"Error: {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private static void HandleDeleteAccount(BankClient client)
+    {
+        Console.Write("Enter the account number to delete: ");
+        var deleteIdInput = Console.ReadLine()?.Trim();
+        if (!int.TryParse(deleteIdInput, out var deleteId))
+        {
+            Console.WriteLine("Error: Invalid account number");
+            return;
+        }
+
+        try
+        {
+            var getUserResponse = client.GetUser(deleteId);
+            if (getUserResponse == null)
+            {
+                Console.WriteLine("Error: Account not found");
+                return;
+            }
+
+            Console.Write($"You wish to delete the account held by {getUserResponse.HoldersName}. If this information is correct, please re-enter\nthe account number: ");
+            var confirmInput = Console.ReadLine()?.Trim();
+            if (!int.TryParse(confirmInput, out var confirmId) || confirmId != deleteId)
+            {
+                Console.WriteLine("Error: Different account number");
+                return;
+            }
+
+            var (success, error) = client.DeleteUser(deleteId);
+            if (success)
+            {
+                Console.WriteLine("Account Deleted Successfully");
+            }
+            else
+            {
+                Console.WriteLine($"Error: {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private static void HandleUpdateAccount(BankClient client)
+    {
+        Console.WriteLine("Enter the Account Number: ");
+        var accountIdInput = Console.ReadLine()?.Trim();
+        if (!int.TryParse(accountIdInput, out var accountId))
+        {
+            Console.WriteLine("Error: Invalid account number");
+            return;
+        }
+
+        try
+        {
+            var getUserResponse = client.GetUser(accountId);
+            if (getUserResponse == null)
+            {
+                Console.WriteLine("Error: Account not found");
+                return;
+            }
+
+            Console.WriteLine($"Account #{accountId}");
+            Console.Write("Holder: ");
+            var newHolder = Console.ReadLine()?.Trim();
+            if (string.IsNullOrWhiteSpace(newHolder))
+            {
+                Console.WriteLine("Error: Invalid Holder Name");
+                return;
+            }
+
+            Console.WriteLine($"Balance: {getUserResponse.Balance}");
+            Console.Write("Status (Active/Disabled): ");
+            var updateStatus = Console.ReadLine()?.Trim();
+            if (!AccountConstants.ValidStatuses.Contains(updateStatus ?? ""))
+            {
+                Console.WriteLine($"Error: Status must be one of: {string.Join(", ", AccountConstants.ValidStatuses)}");
+                return;
+            }
+
+            Console.Write("Login: ");
+            var updateLogin = Console.ReadLine()?.Trim();
+            if (string.IsNullOrWhiteSpace(updateLogin))
+            {
+                Console.WriteLine("Error: Invalid Login");
+                return;
+            }
+
+            Console.Write("Pin Code: ");
+            var updatePin = Console.ReadLine()?.Trim();
+            if (updatePin == null || updatePin.Length != AccountConstants.PinLength || !updatePin.All(char.IsDigit))
+            {
+                Console.WriteLine($"Error: Pin must be {AccountConstants.PinLength} digits");
+                return;
+            }
+
+            var (success, error) = client.UpdateAccount(accountId, updateLogin, updatePin, newHolder, updateStatus!);
+            if (success)
+            {
+                Console.WriteLine("Account Updated Successfully");
+            }
+            else
+            {
+                Console.WriteLine($"Error: {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private static void HandleSearchAccount(BankClient client)
+    {
+        Console.Write("Enter the account number: ");
+        var searchAccountInput = Console.ReadLine()?.Trim();
+        if (!int.TryParse(searchAccountInput, out var searchAccountId))
+        {
+            Console.WriteLine("Error: Invalid account number");
+            return;
+        }
+
+        try
+        {
+            var getUserResponse = client.GetUser(searchAccountId);
+            if (getUserResponse == null)
+            {
+                Console.WriteLine("Error: Account not found");
+                return;
+            }
+
+            Console.WriteLine($"Account #{searchAccountId}");
+            Console.WriteLine($"Holder: {getUserResponse.HoldersName}");
+            Console.WriteLine($"Balance: {getUserResponse.Balance}");
+            Console.WriteLine($"Status: {getUserResponse.Status}");
+            Console.WriteLine($"Login: {getUserResponse.Login}");
+            Console.WriteLine($"Pin: {getUserResponse.Pin}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
         }
     }
 }

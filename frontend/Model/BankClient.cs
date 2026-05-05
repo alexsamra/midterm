@@ -2,47 +2,49 @@ using model;
 
 namespace frontend.Model;
 
+/// Bank client
+
 public class BankClient
 {
-    private readonly UserService _userService;
+    private readonly IAccountService _accountService;
 
-    public BankClient(UserService userService)
+    public BankClient(IAccountService accountService)
     {
-        _userService = userService;
+        _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
     }
 
     public User? Login(string login, string pin)
     {
-        return _userService.ValidateLogin(login, pin);
+        return _accountService.ValidateLogin(login, pin);
     }
 
-    public bool Withdraw(int userId, decimal amount)
+    public (bool success, string? error) Withdraw(int userId, decimal amount)
     {
-        return _userService.Withdraw(userId, amount);
+        return _accountService.Withdraw(userId, amount);
     }
 
-    public bool Deposit(int userId, decimal amount)
+    public (bool success, string? error) Deposit(int userId, decimal amount)
     {
-        return _userService.Deposit(userId, amount);
+        return _accountService.Deposit(userId, amount);
     }
 
     public (bool success, int? accountId, string? error) CreateAccount(string login, string pin, string holdersName, decimal balance, string status)
     {
-        return _userService.CreateUser(login, pin, holdersName, balance, status);
+        return _accountService.CreateAccount(login, pin, holdersName, balance, status);
     }
 
     public User? GetUser(int id)
     {
-        return _userService.GetUserById(id);
+        return _accountService.GetAccountById(id);
     }
 
-    public bool DeleteUser(int id)
+    public (bool success, string? error) DeleteUser(int id)
     {
-        return _userService.DeleteUser(id);
+        return _accountService.DeleteAccount(id);
     }
 
     public (bool success, string? error) UpdateAccount(int id, string login, string pin, string holdersName, string status)
     {
-        return _userService.UpdateUser(id, login, pin, holdersName, status);
+        return _accountService.UpdateAccount(id, login, pin, holdersName, status);
     }
 }

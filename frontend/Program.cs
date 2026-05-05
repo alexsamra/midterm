@@ -1,13 +1,22 @@
-﻿using dal;
+﻿using Microsoft.Extensions.Configuration;
+using dal;
 using model;
 using frontend.Model;
 
-// Initialize DAL and services. Connection string mirrors api appsettings.
-var connectionString = "Server=host.docker.internal;Port=3333;Database=midterm;User=root;Password=a;";
+// Load configuration from appsettings.json
+var config = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+    .Build();
 
-var userDal = new UserDal(connectionString);
-var userService = new UserService(userDal);
-var client = new BankClient(userService);
+var connectionString = config.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found in appsettings.json");
 
-TerminalApp.Run(client);
+// Initialize dependency injection
+IUserRepository userRepository = new UserDal(connectionString);
+IAccountService accountService = new UserService(userRepository);
+var bankClient = new BankClient(accountService);
+
+// Run terminal application
+TerminalApp.Run(bankClient);
 

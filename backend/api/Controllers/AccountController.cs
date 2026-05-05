@@ -3,26 +3,25 @@ using model;
 
 namespace api.Controllers;
 
+/// Account endpoints
+
 [ApiController]
 [Route("[controller]")]
 public class AccountController : ControllerBase
 {
-    private readonly UserService _userService;
+    private readonly IAccountService _accountService;
 
-    public AccountController(UserService userService)
+    public AccountController(IAccountService accountService)
     {
-        _userService = userService;
+        _accountService = accountService;
     }
 
     [HttpPost("withdraw")]
     public IActionResult Withdraw([FromBody] WithdrawRequest request)
     {
-        if (request.Amount <= 0)
-            return BadRequest(new { message = "Amount must be greater than zero" });
-
-        var success = _userService.Withdraw(request.UserId, request.Amount);
+        var (success, error) = _accountService.Withdraw(request.UserId, request.Amount);
         if (!success)
-            return BadRequest(new { message = "Error" });
+            return BadRequest(new { message = error });
 
         return Ok();
     }
@@ -30,12 +29,9 @@ public class AccountController : ControllerBase
     [HttpPost("deposit")]
     public IActionResult Deposit([FromBody] DepositRequest request)
     {
-        if (request.Amount <= 0)
-            return BadRequest(new { message = "Amount must be greater than zero" });
-
-        var success = _userService.Deposit(request.UserId, request.Amount);
+        var (success, error) = _accountService.Deposit(request.UserId, request.Amount);
         if (!success)
-            return BadRequest(new { message = "Error" });
+            return BadRequest(new { message = error });
 
         return Ok();
     }
@@ -43,13 +39,7 @@ public class AccountController : ControllerBase
     [HttpPost("create")]
     public IActionResult CreateAccount([FromBody] CreateAccountRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Login))
-            return BadRequest(new { message = "Invalid Login" });
-
-        if (request.Pin.Length != 5 || !request.Pin.All(char.IsDigit))
-            return BadRequest(new { message = "Invalid Pin" });
-
-        var (success, accountId, error) = _userService.CreateUser(request.Login, request.Pin, request.HolderName, request.Balance, request.Status);
+        var (success, accountId, error) = _accountService.CreateAccount(request.Login, request.Pin, request.HolderName, request.Balance, request.Status);
         if (!success)
             return Conflict(new { message = error });
 
@@ -59,7 +49,7 @@ public class AccountController : ControllerBase
     [HttpGet("{id}")]
     public IActionResult GetUser(int id)
     {
-        var user = _userService.GetUserById(id);
+        var user = _accountService.GetAccountById(id);
         if (user == null)
             return NotFound(new { message = "Account not found." });
 
@@ -69,29 +59,25 @@ public class AccountController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult DeleteUser(int id)
     {
-        var success = _userService.DeleteUser(id);
+        var (success, error) = _accountService.DeleteAccount(id);
         if (!success)
-            return NotFound(new { message = "Account not found." });
+            return NotFound(new { message = error });
 
-        return Ok(new { message = "Account Deleted Successfully" });
+        return Ok(new { message = "Account deleted successfully." });
     }
 
     [HttpPost("update")]
     public IActionResult UpdateAccount([FromBody] UpdateAccountRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Login))
-            return BadRequest(new { message = "Invalid Login" });
-
-        if (request.Pin.Length != 5 || !request.Pin.All(char.IsDigit))
-            return BadRequest(new { message = "Invalid Pin" });
-
-        var (success, error) = _userService.UpdateUser(request.Id, request.Login, request.Pin, request.HolderName, request.Status);
+        var (success, error) = _accountService.UpdateAccount(request.Id, request.Login, request.Pin, request.HolderName, request.Status);
         if (!success)
             return BadRequest(new { message = error });
 
-        return Ok(new { message = "Account Updated Successfully" });
+        return Ok(new { message = "Account updated successfully." });
     }
 }
+
+///  Account DTOs
 
 public class WithdrawRequest
 {
@@ -111,7 +97,7 @@ public class CreateAccountRequest
     public string Pin { get; set; } = string.Empty;
     public string HolderName { get; set; } = string.Empty;
     public decimal Balance { get; set; }
-    public string Status { get; set; } = "Active";
+    public string Status { get; set; } = AccountConstants.StatusActive;
 }
 
 public class UpdateAccountRequest
@@ -120,5 +106,5 @@ public class UpdateAccountRequest
     public string Login { get; set; } = string.Empty;
     public string Pin { get; set; } = string.Empty;
     public string HolderName { get; set; } = string.Empty;
-    public string Status { get; set; } = "Active";
+    public string Status { get; set; } = AccountConstants.StatusActive;
 }
