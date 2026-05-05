@@ -2,5 +2,6 @@
   <Project Path="api/api.csproj" />
   <Project Path="dal/dal.csproj" />
   <Project Path="model/model.csproj" />
+  <Project Path="tests/tests.csproj" />
   <Project Path="utils/utils.csproj" />
 </Solution>
