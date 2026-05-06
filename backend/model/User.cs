@@ -1,4 +1,8 @@
-﻿namespace model;
+﻿// <copyright file="User.cs" company="Midterm">
+// Copyright (c) Midterm. All rights reserved.
+// </copyright>
+
+namespace Model;
 
 /// <summary>
 /// Represents a user account in the banking system.

@@ -1,7 +1,11 @@
-using Microsoft.AspNetCore.Mvc;
-using model;
+// <copyright file="AccountController.cs" company="Midterm">
+// Copyright (c) Midterm. All rights reserved.
+// </copyright>
 
-namespace api.Controllers;
+namespace Api.Controllers;
+
+using Microsoft.AspNetCore.Mvc;
+using Model;
 
 /// <summary>
 /// Controller providing account management endpoints for the banking API.
@@ -29,9 +33,11 @@ public class AccountController : ControllerBase
     [HttpPost("withdraw")]
     public IActionResult Withdraw([FromBody] WithdrawRequest request)
     {
-        var (success, error) = _accountService.Withdraw(request.UserId, request.Amount);
+        var (success, error) = this._accountService.Withdraw(request.UserId, request.Amount);
         if (!success)
+        {
             return BadRequest(new { message = error });
+        }
 
         return Ok();
     }
@@ -44,9 +50,11 @@ public class AccountController : ControllerBase
     [HttpPost("deposit")]
     public IActionResult Deposit([FromBody] DepositRequest request)
     {
-        var (success, error) = _accountService.Deposit(request.UserId, request.Amount);
+        var (success, error) = this._accountService.Deposit(request.UserId, request.Amount);
         if (!success)
+        {
             return BadRequest(new { message = error });
+        }
 
         return Ok();
     }
@@ -59,9 +67,11 @@ public class AccountController : ControllerBase
     [HttpPost("create")]
     public IActionResult CreateAccount([FromBody] CreateAccountRequest request)
     {
-        var (success, accountId, error) = _accountService.CreateAccount(request.Login, request.Pin, request.HolderName, request.Balance, request.Status);
+        var (success, accountId, error) = this._accountService.CreateAccount(request.Login, request.Pin, request.HolderName, request.Balance, request.Status);
         if (!success)
+        {
             return Conflict(new { message = error });
+        }
 
         return Ok(new { id = accountId });
     }
@@ -74,9 +84,11 @@ public class AccountController : ControllerBase
     [HttpGet("{id}")]
     public IActionResult GetUser(int id)
     {
-        var user = _accountService.GetAccountById(id);
+        var user = this._accountService.GetAccountById(id);
         if (user == null)
+        {
             return NotFound(new { message = "Account not found." });
+        }
 
         return Ok(user);
     }
@@ -89,9 +101,11 @@ public class AccountController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult DeleteUser(int id)
     {
-        var (success, error) = _accountService.DeleteAccount(id);
+        var (success, error) = this._accountService.DeleteAccount(id);
         if (!success)
+        {
             return NotFound(new { message = error });
+        }
 
         return Ok(new { message = "Account deleted successfully." });
     }
@@ -104,9 +118,11 @@ public class AccountController : ControllerBase
     [HttpPost("update")]
     public IActionResult UpdateAccount([FromBody] UpdateAccountRequest request)
     {
-        var (success, error) = _accountService.UpdateAccount(request.Id, request.Login, request.Pin, request.HolderName, request.Status);
+        var (success, error) = this._accountService.UpdateAccount(request.Id, request.Login, request.Pin, request.HolderName, request.Status);
         if (!success)
+        {
             return BadRequest(new { message = error });
+        }
 
         return Ok(new { message = "Account updated successfully." });
     }

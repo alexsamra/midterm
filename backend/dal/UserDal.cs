@@ -1,6 +1,10 @@
-﻿using MySql.Data.MySqlClient;
+﻿// <copyright file="UserDal.cs" company="Midterm">
+// Copyright (c) Midterm. All rights reserved.
+// </copyright>
 
-namespace dal;
+namespace Dal;
+
+using MySql.Data.MySqlClient;
 
 /// <summary>
 /// Data access layer implementation for user repository operations.
@@ -8,7 +12,7 @@ namespace dal;
 /// </summary>
 public class UserDal : IUserRepository
 {
-    private readonly string _connectionString;
+    private readonly string connectionString;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UserDal"/> class.
@@ -16,7 +20,7 @@ public class UserDal : IUserRepository
     /// <param name="connectionString">The database connection string.</param>
     public UserDal(string connectionString)
     {
-        _connectionString = connectionString;
+        this.connectionString = connectionString;
     }
 
     /// <summary>
@@ -25,15 +29,14 @@ public class UserDal : IUserRepository
     /// <param name="login">The user's login username.</param>
     /// <param name="pin">The user's PIN.</param>
     /// <returns>A tuple containing user information if credentials are valid; otherwise, null.</returns>
-    public (int id, string login, string pin, string? holdersName, decimal? balance, bool isAdmin, string status)? ValidateLogin(string login, string pin)
+    public (int Id, string Login, string Pin, string? HoldersName, decimal? Balance, bool IsAdmin, string Status)? ValidateLogin(string login, string pin)
     {
-        using var connection = new MySqlConnection(_connectionString);
+        using var connection = new MySqlConnection(this.connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
             "SELECT id, login, pin, holders_name, balance, is_admin, status FROM users WHERE login = @login AND pin = @pin",
-            connection
-        );
+            connection);
         cmd.Parameters.AddWithValue("@login", login);
         cmd.Parameters.AddWithValue("@pin", pin);
 
@@ -47,9 +50,9 @@ public class UserDal : IUserRepository
                 reader.IsDBNull(reader.GetOrdinal("holders_name")) ? null : reader.GetString("holders_name"),
                 reader.IsDBNull(reader.GetOrdinal("balance")) ? null : reader.GetDecimal("balance"),
                 reader.GetBoolean("is_admin"),
-                reader.GetString("status")
-            );
+                reader.GetString("status"));
         }
+
         return null;
     }
 
@@ -61,13 +64,12 @@ public class UserDal : IUserRepository
     /// <returns>True if the withdrawal was successful; otherwise, false.</returns>
     public bool Withdraw(int userId, decimal amount)
     {
-        using var connection = new MySqlConnection(_connectionString);
+        using var connection = new MySqlConnection(this.connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
             "UPDATE users SET balance = balance - @amount WHERE id = @id AND balance >= @amount",
-            connection
-        );
+            connection);
         cmd.Parameters.AddWithValue("@id", userId);
         cmd.Parameters.AddWithValue("@amount", amount);
 
@@ -82,13 +84,12 @@ public class UserDal : IUserRepository
     /// <returns>True if the deposit was successful; otherwise, false.</returns>
     public bool Deposit(int userId, decimal amount)
     {
-        using var connection = new MySqlConnection(_connectionString);
+        using var connection = new MySqlConnection(this.connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
             "UPDATE users SET balance = balance + @amount WHERE id = @id",
-            connection
-        );
+            connection);
         cmd.Parameters.AddWithValue("@id", userId);
         cmd.Parameters.AddWithValue("@amount", amount);
 
@@ -102,13 +103,12 @@ public class UserDal : IUserRepository
     /// <returns>True if the login exists; otherwise, false.</returns>
     public bool LoginExists(string login)
     {
-        using var connection = new MySqlConnection(_connectionString);
+        using var connection = new MySqlConnection(this.connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
             "SELECT COUNT(*) FROM users WHERE login = @login",
-            connection
-        );
+            connection);
         cmd.Parameters.AddWithValue("@login", login);
 
         return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
@@ -125,13 +125,12 @@ public class UserDal : IUserRepository
     /// <returns>The ID of the newly created user.</returns>
     public int CreateUser(string login, string pin, string holdersName, decimal balance, string status = "Active")
     {
-        using var connection = new MySqlConnection(_connectionString);
+        using var connection = new MySqlConnection(this.connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
             "INSERT INTO users (login, pin, holders_name, balance, is_admin, status) VALUES (@login, @pin, @holdersName, @balance, FALSE, @status)",
-            connection
-        );
+            connection);
         cmd.Parameters.AddWithValue("@login", login);
         cmd.Parameters.AddWithValue("@pin", pin);
         cmd.Parameters.AddWithValue("@holdersName", holdersName);
@@ -147,15 +146,14 @@ public class UserDal : IUserRepository
     /// </summary>
     /// <param name="userId">The ID of the user.</param>
     /// <returns>A tuple containing user information if found; otherwise, null.</returns>
-    public (int id, string login, string pin, string? holdersName, decimal? balance, bool isAdmin, string status)? GetUserById(int userId)
+    public (int Id, string Login, string Pin, string? HoldersName, decimal? Balance, bool IsAdmin, string Status)? GetUserById(int userId)
     {
-        using var connection = new MySqlConnection(_connectionString);
+        using var connection = new MySqlConnection(this.connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
             "SELECT id, login, pin, holders_name, balance, is_admin, status FROM users WHERE id = @id",
-            connection
-        );
+            connection);
         cmd.Parameters.AddWithValue("@id", userId);
 
         using var reader = cmd.ExecuteReader();
@@ -168,9 +166,9 @@ public class UserDal : IUserRepository
                 reader.IsDBNull(reader.GetOrdinal("holders_name")) ? null : reader.GetString("holders_name"),
                 reader.IsDBNull(reader.GetOrdinal("balance")) ? null : reader.GetDecimal("balance"),
                 reader.GetBoolean("is_admin"),
-                reader.GetString("status")
-            );
+                reader.GetString("status"));
         }
+
         return null;
     }
 
@@ -181,13 +179,12 @@ public class UserDal : IUserRepository
     /// <returns>True if the deletion was successful; otherwise, false.</returns>
     public bool DeleteUser(int userId)
     {
-        using var connection = new MySqlConnection(_connectionString);
+        using var connection = new MySqlConnection(this.connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
             "DELETE FROM users WHERE id = @id",
-            connection
-        );
+            connection);
         cmd.Parameters.AddWithValue("@id", userId);
 
         return cmd.ExecuteNonQuery() > 0;
@@ -204,13 +201,12 @@ public class UserDal : IUserRepository
     /// <returns>True if the update was successful; otherwise, false.</returns>
     public bool UpdateUser(int userId, string login, string pin, string holdersName, string status)
     {
-        using var connection = new MySqlConnection(_connectionString);
+        using var connection = new MySqlConnection(this.connectionString);
         connection.Open();
 
         using var cmd = new MySqlCommand(
             "UPDATE users SET login = @login, pin = @pin, holders_name = @holdersName, status = @status WHERE id = @id",
-            connection
-        );
+            connection);
         cmd.Parameters.AddWithValue("@id", userId);
         cmd.Parameters.AddWithValue("@login", login);
         cmd.Parameters.AddWithValue("@pin", pin);

@@ -1,4 +1,8 @@
-namespace model;
+// <copyright file="IAccountService.cs" company="Midterm">
+// Copyright (c) Midterm. All rights reserved.
+// </copyright>
+
+namespace Model;
 
 /// <summary>
 /// Service interface for account management operations.
@@ -19,7 +23,7 @@ public interface IAccountService
     /// <param name="userId">The ID of the user.</param>
     /// <param name="amount">The amount to withdraw.</param>
     /// <returns>A tuple indicating success and any error message.</returns>
-    (bool success, string? error) Withdraw(int userId, decimal amount);
+    (bool Success, string? Error) Withdraw(int userId, decimal amount);
 
     /// <summary>
     /// Deposits the specified amount into a user account.
@@ -27,7 +31,7 @@ public interface IAccountService
     /// <param name="userId">The ID of the user.</param>
     /// <param name="amount">The amount to deposit.</param>
     /// <returns>A tuple indicating success and any error message.</returns>
-    (bool success, string? error) Deposit(int userId, decimal amount);
+    (bool Success, string? Error) Deposit(int userId, decimal amount);
 
     /// <summary>
     /// Creates a new user account.
@@ -38,7 +42,7 @@ public interface IAccountService
     /// <param name="balance">The initial account balance.</param>
     /// <param name="status">The status of the account.</param>
     /// <returns>A tuple containing success status, the new account ID, and any error message.</returns>
-    (bool success, int? accountId, string? error) CreateAccount(string login, string pin, string holdersName, decimal balance, string status);
+    (bool Success, int? AccountId, string? Error) CreateAccount(string login, string pin, string holdersName, decimal balance, string status);
 
     /// <summary>
     /// Retrieves account information for the specified user.
@@ -52,7 +56,7 @@ public interface IAccountService
     /// </summary>
     /// <param name="userId">The ID of the user to delete.</param>
     /// <returns>A tuple indicating success and any error message.</returns>
-    (bool success, string? error) DeleteAccount(int userId);
+    (bool Success, string? Error) DeleteAccount(int userId);
 
     /// <summary>
     /// Updates the information for an existing user account.
@@ -63,5 +67,5 @@ public interface IAccountService
     /// <param name="holdersName">The new holder name.</param>
     /// <param name="status">The new account status.</param>
     /// <returns>A tuple indicating success and any error message.</returns>
-    (bool success, string? error) UpdateAccount(int userId, string login, string pin, string holdersName, string status);
+    (bool Success, string? Error) UpdateAccount(int userId, string login, string pin, string holdersName, string status);
 }

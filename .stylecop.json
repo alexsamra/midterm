@@ -23,10 +23,10 @@
     "documentation": {
       "enabled": true,
       "requireCompanyName": false,
-      "companyName": "Company",
+      "companyName": "Midterm",
       "copyrightText": "Copyright (c) {companyName}. All rights reserved.",
       "variables": {
-        "companyName": "Company"
+        "companyName": "Midterm"
       },
       "documentExposedElements": true,
       "documentInternalElements": false,

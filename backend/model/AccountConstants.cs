@@ -1,4 +1,8 @@
-namespace model;
+// <copyright file="AccountConstants.cs" company="Midterm">
+// Copyright (c) Midterm. All rights reserved.
+// </copyright>
+
+namespace Model;
 
 /// <summary>
 /// Constants for account validation and configuration.
@@ -16,11 +20,6 @@ public static class AccountConstants
     public const string StatusDisabled = "Disabled";
 
     /// <summary>
-    /// Array of valid account status values.
-    /// </summary>
-    public static readonly string[] ValidStatuses = { StatusActive, StatusDisabled };
-
-    /// <summary>
     /// The required length for a PIN.
     /// </summary>
     public const int PinLength = 5;
@@ -29,4 +28,9 @@ public static class AccountConstants
     /// The minimum allowed balance for an account.
     /// </summary>
     public const decimal MinimumBalance = 0m;
+
+    /// <summary>
+    /// Array of valid account status values.
+    /// </summary>
+    public static readonly string[] ValidStatuses = { StatusActive, StatusDisabled };
 }

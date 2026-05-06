@@ -1,4 +1,8 @@
-namespace dal;
+// <copyright file="IUserRepository.cs" company="Midterm">
+// Copyright (c) Midterm. All rights reserved.
+// </copyright>
+
+namespace Dal;
 
 /// <summary>
 /// Data access interface for user repository operations.
@@ -11,7 +15,7 @@ public interface IUserRepository
     /// <param name="login">The user's login username.</param>
     /// <param name="pin">The user's PIN.</param>
     /// <returns>A tuple containing user information if credentials are valid; otherwise, null.</returns>
-    (int id, string login, string pin, string? holdersName, decimal? balance, bool isAdmin, string status)? ValidateLogin(string login, string pin);
+    (int Id, string Login, string Pin, string? HoldersName, decimal? Balance, bool IsAdmin, string Status)? ValidateLogin(string login, string pin);
 
     /// <summary>
     /// Withdraws the specified amount from a user account.
@@ -52,7 +56,7 @@ public interface IUserRepository
     /// </summary>
     /// <param name="userId">The ID of the user.</param>
     /// <returns>A tuple containing user information if found; otherwise, null.</returns>
-    (int id, string login, string pin, string? holdersName, decimal? balance, bool isAdmin, string status)? GetUserById(int userId);
+    (int Id, string Login, string Pin, string? HoldersName, decimal? Balance, bool IsAdmin, string Status)? GetUserById(int userId);
 
     /// <summary>
     /// Deletes a user account from the database.
