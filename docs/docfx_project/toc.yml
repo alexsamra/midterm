@@ -1,0 +1,8 @@
+# Table of Contents for DocFX
+
+- name: Home
+  href: ../README.md
+
+- name: API Documentation
+  href: api/
+  homepage: api/index.md

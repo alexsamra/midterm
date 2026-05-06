@@ -1,0 +1,13 @@
+{
+  "msbuild": [
+    {
+      "src": "./../../backend"
+    }
+  ],
+  "metadata": [],
+  "exclude": [
+    "**/bin/**",
+    "**/obj/**",
+    "**/.git/**"
+  ]
+}

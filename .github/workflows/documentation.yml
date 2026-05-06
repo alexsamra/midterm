@@ -1,0 +1,74 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'backend/**/*.cs'
+      - 'docs/**'
+      - '.github/workflows/documentation.yml'
+  workflow_run:
+    workflows: [ "Build and Test" ]
+    types: [ completed ]
+    branches: [ main, master ]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    name: Generate API Documentation
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install DocFX
+        run: dotnet tool install -g docfx
+
+      - name: Restore dependencies
+        run: dotnet restore backend/backend.slnx
+
+      - name: Build Release to generate XML documentation
+        run: dotnet build backend/backend.slnx -c Release --no-restore
+
+      - name: Generate DocFX documentation
+        run: |
+          cd docs/docfx_project
+          docfx docfx.json -o ../../artifacts/docs
+          cd ../..
+        continue-on-error: true
+
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-documentation
+          path: artifacts/docs/
+
+      - name: Deploy documentation to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./artifacts/docs
+          cname: api-docs.midterm.local
+        continue-on-error: true
+
+      - name: Comment on PR with documentation link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '📚 API documentation has been generated. Download the "api-documentation" artifact from the workflow to view it locally.'
+            })
+        continue-on-error: true
