@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v4.2.0
         with:
           dotnet-version: 10.0.x
 
@@ -38,13 +38,13 @@ jobs:
           /p:ThresholdStat=total
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: cobertura-report
           path: ${{ github.workspace }}/backend/tests/TestResults/Coverage/coverage.cobertura.xml
 
       - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v4.5.0
         with:
           files: ${{ github.workspace }}/backend/tests/TestResults/Coverage/coverage.cobertura.xml
           fail_ci_if_error: false

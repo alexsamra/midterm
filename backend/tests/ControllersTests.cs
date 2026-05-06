@@ -1,7 +1,7 @@
 using System.Text.Json;
-using api.Controllers;
+using Api.Controllers;
 using Microsoft.AspNetCore.Mvc;
-using model;
+using Model;
 
 namespace tests;
 

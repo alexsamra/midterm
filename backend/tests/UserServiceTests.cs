@@ -1,4 +1,4 @@
-using model;
+using Model;
 
 namespace tests;
 
@@ -43,8 +43,8 @@ public class UserServiceTests
 
         var result = service.Withdraw(1, 0);
 
-        Assert.False(result.success);
-        Assert.NotNull(result.error);
+        Assert.False(result.Success);
+        Assert.NotNull(result.Error);
     }
 
     [Fact]
@@ -55,8 +55,8 @@ public class UserServiceTests
 
         var result = service.Withdraw(1, 10);
 
-        Assert.False(result.success);
-        Assert.Contains("Withdrawal failed", result.error);
+        Assert.False(result.Success);
+        Assert.Contains("Withdrawal failed", result.Error);
     }
 
     [Fact]
@@ -67,8 +67,8 @@ public class UserServiceTests
 
         var result = service.Withdraw(1, 10);
 
-        Assert.True(result.success);
-        Assert.Null(result.error);
+        Assert.True(result.Success);
+        Assert.Null(result.Error);
     }
 
     [Fact]
@@ -78,8 +78,8 @@ public class UserServiceTests
 
         var result = service.Deposit(1, -1);
 
-        Assert.False(result.success);
-        Assert.NotNull(result.error);
+        Assert.False(result.Success);
+        Assert.NotNull(result.Error);
     }
 
     [Fact]
@@ -90,8 +90,8 @@ public class UserServiceTests
 
         var result = service.Deposit(1, 10);
 
-        Assert.False(result.success);
-        Assert.Equal("Deposit failed.", result.error);
+        Assert.False(result.Success);
+        Assert.Equal("Deposit failed.", result.Error);
     }
 
     [Fact]
@@ -102,8 +102,8 @@ public class UserServiceTests
 
         var result = service.Deposit(1, 10);
 
-        Assert.True(result.success);
-        Assert.Null(result.error);
+        Assert.True(result.Success);
+        Assert.Null(result.Error);
     }
 
     [Fact]
@@ -117,11 +117,11 @@ public class UserServiceTests
         var badBalance = service.CreateAccount("alice", "12345", "A", -1, "Active");
         var badStatus = service.CreateAccount("alice", "12345", "A", 0, "Paused");
 
-        Assert.False(badLogin.success);
-        Assert.False(badPin.success);
-        Assert.False(badHolder.success);
-        Assert.False(badBalance.success);
-        Assert.False(badStatus.success);
+        Assert.False(badLogin.Success);
+        Assert.False(badPin.Success);
+        Assert.False(badHolder.Success);
+        Assert.False(badBalance.Success);
+        Assert.False(badStatus.Success);
     }
 
     [Fact]
@@ -132,8 +132,8 @@ public class UserServiceTests
 
         var result = service.CreateAccount("alice", "12345", "Alice", 10, "Active");
 
-        Assert.False(result.success);
-        Assert.Equal("Login already exists.", result.error);
+        Assert.False(result.Success);
+        Assert.Equal("Login already exists.", result.Error);
     }
 
     [Fact]
@@ -144,8 +144,8 @@ public class UserServiceTests
 
         var result = service.CreateAccount("alice", "12345", "Alice", 10, "Active");
 
-        Assert.False(result.success);
-        Assert.Equal("Failed to create account.", result.error);
+        Assert.False(result.Success);
+        Assert.Equal("Failed to create account.", result.Error);
     }
 
     [Fact]
@@ -156,9 +156,9 @@ public class UserServiceTests
 
         var result = service.CreateAccount("alice", "12345", "Alice", 10, "Active");
 
-        Assert.True(result.success);
-        Assert.Equal(44, result.accountId);
-        Assert.Null(result.error);
+        Assert.True(result.Success);
+        Assert.Equal(44, result.AccountId);
+        Assert.Null(result.Error);
     }
 
     [Fact]
@@ -196,8 +196,8 @@ public class UserServiceTests
 
         var result = service.DeleteAccount(1);
 
-        Assert.False(result.success);
-        Assert.Equal("Account not found.", result.error);
+        Assert.False(result.Success);
+        Assert.Equal("Account not found.", result.Error);
     }
 
     [Fact]
@@ -208,8 +208,8 @@ public class UserServiceTests
 
         var result = service.DeleteAccount(1);
 
-        Assert.True(result.success);
-        Assert.Null(result.error);
+        Assert.True(result.Success);
+        Assert.Null(result.Error);
     }
 
     [Fact]
@@ -217,10 +217,10 @@ public class UserServiceTests
     {
         var service = new UserService(new FakeUserRepository());
 
-        Assert.False(service.UpdateAccount(1, "", "12345", "A", "Active").success);
-        Assert.False(service.UpdateAccount(1, "a", "12", "A", "Active").success);
-        Assert.False(service.UpdateAccount(1, "a", "12345", "", "Active").success);
-        Assert.False(service.UpdateAccount(1, "a", "12345", "A", "Paused").success);
+        Assert.False(service.UpdateAccount(1, "", "12345", "A", "Active").Success);
+        Assert.False(service.UpdateAccount(1, "a", "12", "A", "Active").Success);
+        Assert.False(service.UpdateAccount(1, "a", "12345", "", "Active").Success);
+        Assert.False(service.UpdateAccount(1, "a", "12345", "A", "Paused").Success);
     }
 
     [Fact]
@@ -231,8 +231,8 @@ public class UserServiceTests
 
         var result = service.UpdateAccount(1, "alice", "12345", "Alice", "Active");
 
-        Assert.False(result.success);
-        Assert.Equal("Account not found.", result.error);
+        Assert.False(result.Success);
+        Assert.Equal("Account not found.", result.Error);
     }
 
     [Fact]
@@ -247,8 +247,8 @@ public class UserServiceTests
 
         var result = service.UpdateAccount(1, "other", "12345", "Alice", "Active");
 
-        Assert.False(result.success);
-        Assert.Equal("Login already in use.", result.error);
+        Assert.False(result.Success);
+        Assert.Equal("Login already in use.", result.Error);
     }
 
     [Fact]
@@ -263,8 +263,8 @@ public class UserServiceTests
 
         var result = service.UpdateAccount(1, "alice", "12345", "Alice", "Active");
 
-        Assert.False(result.success);
-        Assert.Equal("Update failed.", result.error);
+        Assert.False(result.Success);
+        Assert.Equal("Update failed.", result.Error);
     }
 
     [Fact]
@@ -279,7 +279,7 @@ public class UserServiceTests
 
         var result = service.UpdateAccount(1, "alice", "12345", "Alice", "Active");
 
-        Assert.True(result.success);
-        Assert.Null(result.error);
+        Assert.True(result.Success);
+        Assert.Null(result.Error);
     }
 }

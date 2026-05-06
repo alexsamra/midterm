@@ -1,4 +1,8 @@
-namespace model;
+// <copyright file="AccountValidator.cs" company="Midterm">
+// Copyright (c) Midterm. All rights reserved.
+// </copyright>
+
+namespace Model;
 
 /// <summary>
 /// Validator for account-related operations and data.
@@ -10,10 +14,13 @@ public static class AccountValidator
     /// </summary>
     /// <param name="login">The login username to validate.</param>
     /// <returns>A tuple indicating validity and any error message.</returns>
-    public static (bool isValid, string? error) ValidateLogin(string? login)
+    public static (bool IsValid, string? Error) ValidateLogin(string? login)
     {
         if (string.IsNullOrWhiteSpace(login))
+        {
             return (false, "Login cannot be empty.");
+        }
+
         return (true, null);
     }
 
@@ -22,10 +29,13 @@ public static class AccountValidator
     /// </summary>
     /// <param name="pin">The PIN to validate.</param>
     /// <returns>A tuple indicating validity and any error message.</returns>
-    public static (bool isValid, string? error) ValidatePin(string? pin)
+    public static (bool IsValid, string? Error) ValidatePin(string? pin)
     {
         if (pin == null || pin.Length != AccountConstants.PinLength || !pin.All(char.IsDigit))
+        {
             return (false, $"Pin must be exactly {AccountConstants.PinLength} digits.");
+        }
+
         return (true, null);
     }
 
@@ -34,10 +44,13 @@ public static class AccountValidator
     /// </summary>
     /// <param name="amount">The amount to validate.</param>
     /// <returns>A tuple indicating validity and any error message.</returns>
-    public static (bool isValid, string? error) ValidateAmount(decimal amount)
+    public static (bool IsValid, string? Error) ValidateAmount(decimal amount)
     {
         if (amount <= 0)
+        {
             return (false, "Amount must be greater than zero.");
+        }
+
         return (true, null);
     }
 
@@ -46,10 +59,13 @@ public static class AccountValidator
     /// </summary>
     /// <param name="balance">The balance to validate.</param>
     /// <returns>A tuple indicating validity and any error message.</returns>
-    public static (bool isValid, string? error) ValidateBalance(decimal balance)
+    public static (bool IsValid, string? Error) ValidateBalance(decimal balance)
     {
         if (balance < AccountConstants.MinimumBalance)
+        {
             return (false, $"Balance cannot be negative.");
+        }
+
         return (true, null);
     }
 
@@ -58,10 +74,13 @@ public static class AccountValidator
     /// </summary>
     /// <param name="status">The status to validate.</param>
     /// <returns>A tuple indicating validity and any error message.</returns>
-    public static (bool isValid, string? error) ValidateStatus(string? status)
+    public static (bool IsValid, string? Error) ValidateStatus(string? status)
     {
         if (string.IsNullOrWhiteSpace(status) || !AccountConstants.ValidStatuses.Contains(status))
+        {
             return (false, $"Status must be one of: {string.Join(", ", AccountConstants.ValidStatuses)}");
+        }
+
         return (true, null);
     }
 
@@ -70,10 +89,13 @@ public static class AccountValidator
     /// </summary>
     /// <param name="name">The holder name to validate.</param>
     /// <returns>A tuple indicating validity and any error message.</returns>
-    public static (bool isValid, string? error) ValidateHolderName(string? name)
+    public static (bool IsValid, string? Error) ValidateHolderName(string? name)
     {
         if (string.IsNullOrWhiteSpace(name))
+        {
             return (false, "Holder name cannot be empty.");
+        }
+
         return (true, null);
     }
 }
