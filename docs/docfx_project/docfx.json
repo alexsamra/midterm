@@ -1,0 +1,74 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "backend/api/**/*.csproj",
+            "backend/model/**/*.csproj",
+            "backend/dal/**/*.csproj"
+          ]
+        }
+      ],
+      "dest": "api",
+      "disableGitFeature": false,
+      "shouldSkipMarkup": false,
+      "filter": "filterConfig.json"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "api/**.yml",
+          "api/**.md"
+        ]
+      },
+      {
+        "files": [
+          "*.md",
+          "toc.yml"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "overwrite": [
+      {
+        "files": [
+          "apidoc/**.md"
+        ],
+        "exclude": [
+          "obj/**",
+          "_site/**"
+        ]
+      }
+    ],
+    "globalMetadata": {
+      "_enableSearch": true,
+      "_appTitle": "Midterm Banking System API Documentation",
+      "_appFaviconPath": "favicon.ico",
+      "_enableNewTab": true,
+      "_disableBreadcrumb": false,
+      "_gitContribute": {
+        "branch": "main",
+        "repository": "https://github.com/your-org/midterm"
+      }
+    },
+    "fileMetadata": {},
+    "template": [
+      "default",
+      "modern"
+    ],
+    "postProcessors": [],
+    "keepFileLink": false,
+    "disableGitFeature": false,
+    "cleanupCacheHistory": false,
+    "disableLivePreview": false
+  }
+}

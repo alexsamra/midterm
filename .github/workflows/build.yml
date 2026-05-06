@@ -1,0 +1,117 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    name: Build, Test, and Analyze
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore backend/backend.slnx
+
+      - name: Check code style with StyleCopAnalyzers
+        run: |
+          cd backend
+          dotnet build backend.slnx -c Release \
+            /p:TreatWarningsAsErrors=false \
+            /p:EnforceCodeStyleInBuild=true \
+            /p:StyleCopTreatErrorsAsWarnings=false \
+            --no-restore --no-incremental
+        continue-on-error: true
+
+      - name: Build Debug configuration
+        run: dotnet build backend/backend.slnx -c Debug --no-restore
+
+      - name: Build Release configuration
+        run: dotnet build backend/backend.slnx -c Release --no-restore
+
+      - name: Run unit tests with coverage
+        run: >-
+          dotnet test backend/tests/tests.csproj -c Release --no-build --no-restore
+          /p:CollectCoverage=true
+          /p:CoverletOutput=backend/tests/TestResults/Coverage/
+          /p:CoverletOutputFormat=cobertura
+          /p:Include="[model*]*%2c[api*]*"
+          /p:Exclude="[tests*]*"
+          /p:ExcludeByFile="**/obj/**%2c**/Program.cs"
+          /p:Threshold=90
+          /p:ThresholdType=line
+          /p:ThresholdStat=total
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-report
+          path: ${{ github.workspace }}/backend/tests/TestResults/Coverage/coverage.cobertura.xml
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ${{ github.workspace }}/backend/tests/TestResults/Coverage/coverage.cobertura.xml
+          fail_ci_if_error: false
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: Collect build artifacts
+        if: success()
+        run: |
+          mkdir -p ${{ github.workspace }}/build-artifacts
+          cp -r backend/api/bin/Release/net10.0/*.xml ${{ github.workspace }}/build-artifacts/ 2>/dev/null || true
+          cp -r backend/model/bin/Release/net10.0/*.xml ${{ github.workspace }}/build-artifacts/ 2>/dev/null || true
+          cp -r backend/dal/bin/Release/net10.0/*.xml ${{ github.workspace }}/build-artifacts/ 2>/dev/null || true
+
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-documentation
+          path: ${{ github.workspace }}/build-artifacts/
+
+      - name: Comment PR with test results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Build and tests completed successfully! See the checks above for details.'
+            })
+        continue-on-error: true
+
+      - name: Build status check
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.setFailed('Build failed. Please check the logs above for details.')

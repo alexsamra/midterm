@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DotnetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
+  "settings": {
+    "indentation": {
+      "indentationSize": 4,
+      "useTabs": false
+    },
+    "maintainabilityRules": {
+      "enabled": true
+    },
+    "namingRules": {
+      "enabled": true
+    },
+    "orderingRules": {
+      "enabled": true
+    },
+    "readabilityRules": {
+      "enabled": true
+    },
+    "spacingRules": {
+      "enabled": true
+    },
+    "documentation": {
+      "enabled": true,
+      "requireCompanyName": false,
+      "companyName": "Company",
+      "copyrightText": "Copyright (c) {companyName}. All rights reserved.",
+      "variables": {
+        "companyName": "Company"
+      },
+      "documentExposedElements": true,
+      "documentInternalElements": false,
+      "documentPrivateElements": false,
+      "documentInterfaces": true,
+      "documentPrivateFields": false
+    },
+    "layoutRules": {
+      "enabled": true
+    }
+  }
+}
